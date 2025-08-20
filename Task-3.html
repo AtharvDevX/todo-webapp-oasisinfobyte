@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro To-Do WebApp</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #0f0f0f;
+      color: #f1f1f1;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      font-size: 2rem;
+      font-weight: bold;
+      background: #1a1a1a;
+      color: #00e5ff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #1b1b1b;
+      border-radius: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: #262626;
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-align: center;
+      flex: 1;
+      margin: 0 5px;
+    }
+
+    .stat-box h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #00e5ff;
+    }
+
+    .stat-box p {
+      font-size: 1.5rem;
+      margin: 5px 0 0;
+      font-weight: bold;
+    }
+
+    .task-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .task-input input, .task-input select {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .task-input button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      background: #00e5ff;
+      color: #000;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .task-input button:hover {
+      background: #00acc1;
+    }
+
+    h2 {
+      margin-top: 25px;
+      border-bottom: 2px solid #333;
+      padding-bottom: 5px;
+      color: #00e5ff;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #262626;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .task-info {
+      flex: 2;
+    }
+
+    .task-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .task-meta {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 5px;
+    }
+
+    .priority-high { color: #ff5252; font-weight: bold; }
+    .priority-medium { color: #ffc107; font-weight: bold; }
+    .priority-low { color: #4caf50; font-weight: bold; }
+
+    .task-actions button {
+      margin-left: 5px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .complete-btn { background: #4caf50; color: #fff; }
+    .edit-btn { background: #ff9800; color: #fff; }
+    .delete-btn { background: #f44336; color: #fff; }
+  </style>
+</head>
+<body>
+  <header>🚀 Pro To-Do WebApp</header>
+
+  <div class="container">
+
+    <!-- Dashboard -->
+    <div class="stats">
+      <div class="stat-box"><h3>Pending</h3><p id="pendingCount">0</p></div>
+      <div class="stat-box"><h3>Completed</h3><p id="completedCount">0</p></div>
+      <div class="stat-box"><h3>Total</h3><p id="totalCount">0</p></div>
+    </div>
+
+    <!-- Task Input -->
+    <div class="task-input">
+      <input type="text" id="taskInput" placeholder="Enter new task...">
+      <select id="priority">
+        <option value="low">Low Priority</option>
+        <option value="medium">Medium Priority</option>
+        <option value="high">High Priority</option>
+      </select>
+      <input type="date" id="dueDate">
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <h2>Pending Tasks</h2>
+    <ul id="pendingList"></ul>
+
+    <h2>Completed Tasks</h2>
+    <ul id="completedList"></ul>
+  </div>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function updateStats() {
+      let pending = tasks.filter(t => !t.completed).length;
+      let completed = tasks.filter(t => t.completed).length;
+      document.getElementById("pendingCount").innerText = pending;
+      document.getElementById("completedCount").innerText = completed;
+      document.getElementById("totalCount").innerText = tasks.length;
+    }
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    function addTask() {
+      let text = document.getElementById("taskInput").value.trim();
+      let priority = document.getElementById("priority").value;
+      let dueDate = document.getElementById("dueDate").value;
+
+      if (!text) return;
+
+      tasks.push({
+        id: Date.now(),
+        text,
+        priority,
+        dueDate,
+        createdAt: new Date().toLocaleString(),
+        completed: false
+      });
+
+      document.getElementById("taskInput").value = "";
+      document.getElementById("dueDate").value = "";
+      saveTasks();
+    }
+
+    function toggleComplete(id) {
+      let task = tasks.find(t => t.id === id);
+      task.completed = !task.completed;
+      saveTasks();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+    }
+
+    function editTask(id) {
+      let task = tasks.find(t => t.id === id);
+      let newText = prompt("Edit task:", task.text);
+      if (newText) {
+        task.text = newText;
+        saveTasks();
+      }
+    }
+
+    function renderTasks() {
+      let pendingList = document.getElementById("pendingList");
+      let completedList = document.getElementById("completedList");
+      pendingList.innerHTML = "";
+      completedList.innerHTML = "";
+
+      tasks.forEach(task => {
+        let li = document.createElement("li");
+        let info = document.createElement("div");
+        info.className = "task-info";
+        info.innerHTML = `
+          <div class="task-title">${task.text} 
+            <span class="priority-${task.priority}">[${task.priority}]</span>
+          </div>
+          <div class="task-meta">
+            Created: ${task.createdAt} 
+            ${task.dueDate ? "| Due: " + task.dueDate : ""}
+          </div>
+        `;
+
+        let actions = document.createElement("div");
+        actions.className = "task-actions";
+        actions.innerHTML = `
+          <button class="complete-btn" onclick="toggleComplete(${task.id})">✔</button>
+          <button class="edit-btn" onclick="editTask(${task.id})">✎</button>
+          <button class="delete-btn" onclick="deleteTask(${task.id})">✖</button>
+        `;
+
+        li.appendChild(info);
+        li.appendChild(actions);
+
+        if (task.completed) {
+          completedList.appendChild(li);
+        } else {
+          pendingList.appendChild(li);
+        }
+      });
+
+      updateStats();
+    }
+
+    renderTasks();
+  </script>
+</body>
+</html>
